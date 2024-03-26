@@ -55,4 +55,18 @@ mod tests {
         // Assert
         assert!(measurements.is_empty());
     }
+
+    #[test]
+    fn given_file_with_ten_measurements_when_read_lines_then_length_is_10() {
+        // Arrange
+        let path = "./data/test02.csv";
+        let measurements =
+            StationMeasurements::from_file(path).expect("failed to open measurements file");
+
+        // Act
+        measurements.read_lines();
+
+        // Assert
+        assert!(measurements.len(), 10, "There should be 10 measurements");
+    }
 }
