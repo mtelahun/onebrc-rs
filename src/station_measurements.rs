@@ -27,4 +27,18 @@ mod tests {
             "failed to open measurements file"
         );
     }
+
+    #[test]
+    fn given_file_when_line_starts_with_hash_then_ignore() {
+        // Arrange
+        let path = "./data/test01.csv";
+        let measurements =
+            StationMeasurements::from_file(path).expect("failed to open measurements file");
+
+        // Act
+        measurements.read_lines();
+
+        // Assert
+        assert!(measurements.is_empty());
+    }
 }
