@@ -1,14 +1,21 @@
 use std::{
-    collections::HashMap,
-    fs::File,
-    io::{self, BufRead, BufReader},
+    collections::HashMap, fs::File, io::{self, BufRead, BufReader}
 };
 
 use crate::arraystring128::{ArrayString128, MAX_STRING_LEN};
 
+#[derive(Debug)]
 pub struct StationMeasurements {
     file: File,
-    lines: HashMap<ArrayString128, f64>,
+    lines: HashMap<ArrayString128, TemperatureStats>,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct TemperatureStats {
+    min: f64,
+    max: f64,
+    sum: f64,
+    count: i32,
 }
 
 impl StationMeasurements {
@@ -17,6 +24,14 @@ impl StationMeasurements {
             file: File::open(path)?,
             lines: HashMap::new(),
         })
+    }
+
+    pub fn get_stats(&self, city: &ArrayString128) -> TemperatureStats {
+        if let Some(current_value) = self.lines.get(city) {
+            *current_value
+        } else {
+            TemperatureStats { min: 0_f64, max: 0_f64, sum: 0_f64, count: 1 }
+        }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -49,10 +64,35 @@ impl StationMeasurements {
                         continue
                     },
                 };
-                self.lines.insert(city, temp);
+                if self.lines.contains_key(&city) {
+                    let current_stats = self.lines.get_mut(&city).unwrap();
+                    current_stats.min = current_stats.min.min(temp);
+                    current_stats.max = current_stats.max.max(temp);
+                    current_stats.sum += temp;
+                    current_stats.count += 1;
+                } else {
+                    let new_value = TemperatureStats {
+                        min: temp,
+                        max: temp,
+                        sum: temp,
+                        count: 1,
+                    };
+                    self.lines.insert(city, new_value);
+                }
                 buf.clear();
             }
         }
+    }
+}
+
+impl std::fmt::Display for TemperatureStats {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let avg = if self.count > 0 {
+            self.sum / (self.count as f64)
+        } else {
+            0f64
+        };
+        write!(f, "{:.2}/{:.2}/{:.2}", self.min, avg, self.max)
     }
 }
 
@@ -113,12 +153,12 @@ mod tests {
         measurements.read_lines();
 
         // Act
-        let stats = measurements.get_stats(ArrayString128::from_str("Hamburg"));
+        let stats = measurements.get_stats(&ArrayString128::from_str("Hamburg").unwrap());
 
         // Assert
         assert_eq!(
+            "12.00/29.42/42.55",
             format!("{}", stats),
-            "12.00/29.42/42.55"
         );
     }
 }
