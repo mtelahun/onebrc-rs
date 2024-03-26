@@ -10,3 +10,4 @@ name = "calculate_average"
 path = "src/main.rs"
 
 [dependencies]
+arrayvec = "0.7.4"

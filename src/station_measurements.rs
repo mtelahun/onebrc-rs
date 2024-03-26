@@ -1,11 +1,25 @@
-use std::{fs::File, io};
+use std::{collections::HashMap, fs::File, io};
 
-pub struct StationMeasurements {}
+use crate::arraystring128::ArrayString128;
+
+pub struct StationMeasurements {
+    file: File,
+    lines: HashMap<ArrayString128, f64>,
+}
 
 impl StationMeasurements {
-    pub fn from_file(path: &str) -> Result<File, io::Error> {
-        File::open(path)
+    pub fn from_file(path: &str) -> Result<Self, io::Error> {
+        Ok(Self {
+            file: File::open(path)?,
+            lines: HashMap::new(),
+        })
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.lines.is_empty()
+    }
+
+    pub fn read_lines(&self) {}
 }
 
 #[cfg(test)]
