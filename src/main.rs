@@ -13,5 +13,5 @@ fn main() {
 
     measurements.read_lines();
 
-    println!("{} measurements read", measurements.len());
+    println!("{} cities processed", measurements.len());
 }
