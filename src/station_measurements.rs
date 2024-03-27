@@ -156,6 +156,7 @@ mod tests {
         let stats = measurements.get_stats(&ArrayString128::from_str("Hamburg").unwrap());
 
         // Assert
+        assert_eq!(1, stats.len(), "one record in statistics list");
         assert_eq!(
             "12.00/29.42/42.55",
             format!("{}", stats),
