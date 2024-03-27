@@ -26,12 +26,13 @@ impl StationMeasurements {
         })
     }
 
-    pub fn get_stats(&self, city: &ArrayString128) -> TemperatureStats {
+    pub fn get_stats(&self, city: &ArrayString128) -> Vec<TemperatureStats> {
+        let mut result = Vec::with_capacity(500);
         if let Some(current_value) = self.lines.get(city) {
-            *current_value
-        } else {
-            TemperatureStats { min: 0_f64, max: 0_f64, sum: 0_f64, count: 1 }
+            result.push(*current_value);
         }
+
+        result
     }
 
     pub fn is_empty(&self) -> bool {
@@ -153,13 +154,13 @@ mod tests {
         measurements.read_lines();
 
         // Act
-        let stats = measurements.get_stats(&ArrayString128::from_str("Hamburg").unwrap());
+        let mut stats = measurements.get_stats(&ArrayString128::from_str("Hamburg").unwrap());
 
         // Assert
         assert_eq!(1, stats.len(), "one record in statistics list");
         assert_eq!(
             "12.00/29.42/42.55",
-            format!("{}", stats),
+            format!("{}", stats.pop().unwrap()),
         );
     }
 }
