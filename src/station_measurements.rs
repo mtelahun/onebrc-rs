@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{hash_map, HashMap},
     fs::File,
     io::{self, BufRead, BufReader},
 };
@@ -83,20 +83,20 @@ impl StationMeasurements {
                         continue;
                     }
                 };
-                if self.lines.contains_key(&city) {
-                    let current_stats = self.lines.get_mut(&city).unwrap();
-                    current_stats.min = current_stats.min.min(temp);
-                    current_stats.max = current_stats.max.max(temp);
-                    current_stats.sum += temp;
-                    current_stats.count += 1;
-                } else {
+                if let hash_map::Entry::Vacant(e) = self.lines.entry(city) {
                     let new_value = TemperatureStats {
                         min: temp,
                         max: temp,
                         sum: temp,
                         count: 1,
                     };
-                    self.lines.insert(city, new_value);
+                    e.insert(new_value);
+                } else {
+                    let current_stats = self.lines.get_mut(&city).unwrap();
+                    current_stats.min = current_stats.min.min(temp);
+                    current_stats.max = current_stats.max.max(temp);
+                    current_stats.sum += temp;
+                    current_stats.count += 1;
                 }
                 buf.clear();
             }
@@ -105,6 +105,10 @@ impl StationMeasurements {
 }
 
 impl CityTemperatureStats<'_> {
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+
     pub fn len(&self) -> usize {
         self.inner.len()
     }
@@ -140,6 +144,8 @@ mod tests {
     use std::{io, str::FromStr};
 
     use crate::{arraystring128::ArrayString128, station_measurements::StationMeasurements};
+
+    use super::CityTemperatureStats;
 
     #[test]
     fn given_nonexistent_file_return_error() {
@@ -213,5 +219,15 @@ mod tests {
         // Assert
         assert_eq!(1, stats.len(), "one record in statistics list");
         assert_eq!("{Hamburg=12.00/29.42/42.55}", format!("{}", stats),);
+    }
+
+    #[test]
+    #[allow(non_snake_case)]
+    fn given_CityTemperatureStats_then_is_empty() {
+        // Act
+        let agg = CityTemperatureStats { inner: Vec::new() };
+
+        // Assert
+        assert!(agg.is_empty());
     }
 }
