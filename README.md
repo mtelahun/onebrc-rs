@@ -1,4 +1,8 @@
 # onebrc-rs
+![Rust](https://github.com/mtelahun/onebrc-rs/actions/workflows/rust.yml/badge.svg)
+[![codecov](https://codecov.io/gh/mtelahun/onebrc-rs/branch/main/graph/badge.svg?token=A1P9I5E2LU)](https://codecov.io/gh/mtelahun/onebrc-rs)
+[![License](https://img.shields.io/badge/License-BSD_2--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
+
 ## 1 Billion Row Challenge - in Rust
 
 The original challenge: https://github.com/gunnarmorling/1brc
