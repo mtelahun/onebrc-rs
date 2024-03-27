@@ -9,5 +9,8 @@ edition = "2021"
 name = "calculate_average"
 path = "src/main.rs"
 
+[profile.release]
+debug = true
+
 [dependencies]
 arrayvec = "0.7.4"
