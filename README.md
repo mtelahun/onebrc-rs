@@ -45,4 +45,4 @@ The task is to write a [Rust] program which reads the input file, calculates the
 ```
 
 ## This implementation
-My implementation is idiomatic rust with the only optimization being the use of `ArrayString` from the `arrayvec` crate to reduce String allocation on the heap. On my 4-core Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz workstation this program takes `156 sec` to run. The Java reference implementation from the original repo takes `251 sec.`
+My implementation is in idiomatic rust with the only optimization being the use of `ArrayString` from the `arrayvec` crate to reduce String allocation on the heap. On my 16GB RAM 4-core Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz workstation this program takes `156 sec` to run. The Java reference implementation from the original repo takes `251 sec.`
