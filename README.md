@@ -17,7 +17,7 @@ then run and time this crate:
 ```
 /usr/bin/time cargo run --release -- <path/to/input/file>
 ```
-The majority of the program run-time is spent reading the input. After the OS reads the input file the first time large parts of it will be cached in memory. Run the release binary a second time on the input file to take advantage of this (and reduce your program run-time).
+The majority of the program run-time is spent reading the input. After the OS reads the input file for the first time large parts of it will be cached in memory. Run the release binary a second time on the input file to take advantage of this (and reduce your program run-time).
 
 To generate a flamegraph:
 ```
