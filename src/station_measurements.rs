@@ -1,5 +1,7 @@
 use std::{
-    collections::HashMap, fs::File, io::{self, BufRead, BufReader}
+    collections::HashMap,
+    fs::File,
+    io::{self, BufRead, BufReader},
 };
 
 use crate::arraystring128::{ArrayString128, MAX_STRING_LEN};
@@ -18,6 +20,11 @@ pub struct TemperatureStats {
     count: i32,
 }
 
+#[derive(Clone, Debug)]
+pub struct CityTemperatureStats<'a> {
+    inner: Vec<(&'a ArrayString128, &'a TemperatureStats)>,
+}
+
 impl StationMeasurements {
     pub fn from_file(path: &str) -> Result<Self, io::Error> {
         Ok(Self {
@@ -26,13 +33,24 @@ impl StationMeasurements {
         })
     }
 
-    pub fn get_stats(&self, city: &ArrayString128) -> Vec<TemperatureStats> {
-        let mut result = Vec::with_capacity(500);
-        if let Some(current_value) = self.lines.get(city) {
-            result.push(*current_value);
-        }
+    pub fn get_all_stats(&self) -> CityTemperatureStats {
+        let mut sorted: Vec<(&ArrayString128, &TemperatureStats)> = self.lines.iter().collect();
+        sorted.sort_by_key(|k| k.0);
 
-        result
+        CityTemperatureStats { inner: sorted }
+    }
+
+    pub fn get_stat(&self, city: &ArrayString128) -> TemperatureStats {
+        if let Some(current_value) = self.lines.get(city) {
+            *current_value
+        } else {
+            TemperatureStats {
+                min: 0_f64,
+                max: 0_f64,
+                sum: 0_f64,
+                count: 1,
+            }
+        }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -55,15 +73,15 @@ impl StationMeasurements {
                     Ok(c) => c,
                     Err(_) => {
                         buf.clear();
-                        continue
-                    },
+                        continue;
+                    }
                 };
                 let temp: f64 = match temp.trim().parse() {
                     Ok(t) => t,
                     Err(_) => {
                         buf.clear();
-                        continue
-                    },
+                        continue;
+                    }
                 };
                 if self.lines.contains_key(&city) {
                     let current_stats = self.lines.get_mut(&city).unwrap();
@@ -86,6 +104,12 @@ impl StationMeasurements {
     }
 }
 
+impl CityTemperatureStats<'_> {
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
+}
+
 impl std::fmt::Display for TemperatureStats {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let avg = if self.count > 0 {
@@ -94,6 +118,20 @@ impl std::fmt::Display for TemperatureStats {
             0f64
         };
         write!(f, "{:.2}/{:.2}/{:.2}", self.min, avg, self.max)
+    }
+}
+
+impl std::fmt::Display for CityTemperatureStats<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut msg_inner = String::new();
+        for (city, stat) in self.inner.iter() {
+            if !msg_inner.is_empty() {
+                msg_inner = format!("{}, {}={}", msg_inner, **city, **stat);
+            } else {
+                msg_inner = format!("{}={}", **city, **stat);
+            }
+        }
+        write!(f, "{{{}}}", msg_inner)
     }
 }
 
@@ -154,13 +192,26 @@ mod tests {
         measurements.read_lines();
 
         // Act
-        let mut stats = measurements.get_stats(&ArrayString128::from_str("Hamburg").unwrap());
+        let stats = measurements.get_stat(&ArrayString128::from_str("Hamburg").unwrap());
+
+        // Assert
+        assert_eq!("12.00/29.42/42.55", format!("{}", stats),);
+    }
+
+    #[test]
+    fn given_file_with_measurements_when_get_all_stats_then_return_all_statistics() {
+        // Arrange
+        let path = "./data/test03.csv";
+        let mut measurements =
+            StationMeasurements::from_file(path).expect("failed to open measurements file");
+        measurements.read_lines();
+
+        // Act
+        let stats = measurements.get_all_stats();
+        eprintln!("stats: {stats}");
 
         // Assert
         assert_eq!(1, stats.len(), "one record in statistics list");
-        assert_eq!(
-            "12.00/29.42/42.55",
-            format!("{}", stats.pop().unwrap()),
-        );
+        assert_eq!("{Hamburg=12.00/29.42/42.55}", format!("{}", stats),);
     }
 }
